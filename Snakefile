@@ -74,7 +74,7 @@ rule build_reads:
             for c in config.chromosomes
         ]
     output:
-        config.reads_template
+        temp(config.reads_template)
     conda:
         "envs/python.yaml"
     log:
@@ -91,7 +91,7 @@ rule build_rdr:
         i=config.reads_template,
         n=lambda wc: str(config.reads_template).format(sample="normal",bin_size=wc.bin_size)
     output:
-        config.rdr_template
+        temp(config.rdr_template)
     conda:
         "envs/python.yaml"
     log:
