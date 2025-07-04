@@ -1,0 +1,31 @@
+# Whether to append "chr" to the start of the chromosome names
+add_chr_prefix: True
+# List of block sizes using kb format
+bin_sizes:
+  - 10kb
+  - 20kb
+# List of chromosomes to consider.
+# Note: autosomes can be used to specify 1-22
+chromosomes:
+  - autosomes
+  - X
+# BigWig format mappability file
+map_file: /foo/bar/hg38.fa.mappability_150bp.bw
+# Minimum base quality
+min_bqual: 30
+# Minimum mapping quality
+min_mqual: 30
+# Path to normal BAM file
+normal_bam_file: /foo/bar/bams/normal.bam
+# Path to TSV format file with columns `sample` and `path`
+paths_file: examples/paths.tsv
+# Path to FASTA file for reference genome (should have .fai index file)
+ref_genome_file: /foo/bar/Homo_sapiens_assembly38.fasta
+# List of SNP files for different programs to use
+snp_files:
+  eagle: /foo/bar/snps/eagle.bcf
+
+# Pipeline working directory
+pipeline_dir: /foo/bar/pipeline
+# Pipeline output directory
+out_dir: /foo/bar/output

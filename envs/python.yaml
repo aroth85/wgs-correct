@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - matplotlib
+  - numpy
+  - pandas
+  - pysam >= 0.22
+  - scipy <= 1.15.3
+  - seaborn
+  - statsmodels==0.14.4
