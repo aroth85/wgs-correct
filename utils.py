@@ -11,6 +11,7 @@ class ConfigManager(object):
         self.config = config
         paths_file = self._format_patient_path(config["paths_file"])
         self.paths_df = pd.read_csv(paths_file, sep="\t")
+        self.paths_df = self.paths_df.rename(columns={"cell_id": "sample"})
 
     @property
     def add_chr_prefix(self):
