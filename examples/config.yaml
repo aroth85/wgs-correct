@@ -9,6 +9,7 @@ bin_sizes:
 chromosomes:
   - autosomes
   - X
+chromosome_parallel: False
 # BigWig format mappability file
 map_file: /foo/bar/hg38.fa.mappability_150bp.bw
 # Minimum base quality

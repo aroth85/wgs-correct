@@ -35,6 +35,10 @@ class ConfigManager(object):
         return chroms
 
     @property
+    def chromosome_parallel(self):
+        return self.config.get("chromosome_parallel", True)
+
+    @property
     def map_file(self):
         return pathlib.Path(self.config["map_file"])
 

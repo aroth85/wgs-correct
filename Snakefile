@@ -45,46 +45,72 @@ rule build_gc_wig:
         "> {output} "
         "2>{log}"
 
-rule build_reads_chrom:
-    input:
-        config.get_bam_file
-    output:
-        temp(config.reads_chrom_template)
-    params:
-        q=config.min_mqual,
-        s=lambda wc: config.parse_region_size(wc.bin_size)
-    conda:
-        "envs/python.yaml"
-    log:
-        config.get_log_file(config.reads_chrom_template)
-    resources:
-        mem="8G"
-    shell:
-        "(python scripts/get_coverage.py "
-        "-b {input} "
-        "-o {output} "
-        "-c {wildcards.chrom} "
-        "-q {params.q} "
-        "-s {params.s}) >{log} 2>&1"
+if config.chromosome_parallel:
+    rule build_reads_chrom:
+        input:
+            config.get_bam_file
+        output:
+            temp(config.reads_chrom_template)
+        params:
+            q=config.min_mqual,
+            s=lambda wc: config.parse_region_size(wc.bin_size)
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.reads_chrom_template)
+        resources:
+            mem="8G"
+        shell:
+            "(python scripts/get_coverage.py "
+            "-b {input} "
+            "-o {output} "
+            "-c {wildcards.chrom} "
+            "-q {params.q} "
+            "-s {params.s}) >{log} 2>&1"
 
-rule build_reads:
-    input:
-        lambda wc: [
-            str(config.reads_chrom_template).format(chrom=c,bin_size=wc.bin_size,sample=wc.sample)
-            for c in config.chromosomes
-        ]
-    output:
-        temp(config.reads_template)
-    conda:
-        "envs/python.yaml"
-    log:
-        config.get_log_file(config.reads_template)
-    resources:
-        mem="8G"
-    shell:
-        "(python scripts/merge_tables.py "
-        "-i {input} "
-        "-o {output}) >{log} 2>&1"
+    rule build_reads:
+        input:
+            lambda wc: [
+                str(config.reads_chrom_template).format(chrom=c,bin_size=wc.bin_size,sample=wc.sample)
+                for c in config.chromosomes
+            ]
+        output:
+            temp(config.reads_template)
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.reads_template)
+        resources:
+            mem="8G"
+        shell:
+            "(python scripts/merge_tables.py "
+            "-i {input} "
+            "-o {output}) >{log} 2>&1"
+
+else:
+    rule build_reads:
+        input:
+            config.get_bam_file
+        output:
+            temp(config.reads_template)
+        params:
+            c=" ".join(config.chromosomes),
+            q=config.min_mqual,
+            s=lambda wc: config.parse_region_size(wc.bin_size)
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.reads_template)
+        resources:
+            mem="8G"
+        shell:
+            "(python scripts/get_coverage.py "
+            "-b {input} "
+            "-o {output} "
+            "-c {params.c} "
+            "-q {params.q} "
+            "-s {params.s}) >{log} 2>&1"
+
 
 rule build_rdr:
     input:
@@ -125,44 +151,69 @@ rule build_rdr_corrected:
         "-o {output} "
         "--sample-id {wildcards.sample}) >{log} 2>&1"
 
-rule build_allele_counts_chrom:
-    input:
-        b=config.get_bam_file,
-        s=config.get_snp_file
-    output:
-        temp(config.allele_counts_chrom_template)
-    params:
-        config.min_bqual
-    conda:
-        "envs/python.yaml"
-    log:
-        config.get_log_file(config.allele_counts_chrom_template)
-    resources:
-        mem="8G"
-    shell:
-        "(python scripts/get_allele_counts.py "
-        "-b {input.b} "
-        "-s {input.s} "
-        "-o {output} "
-        "-c {wildcards.chrom} "
-        "-q {params}) >{log} 2>&1"
+if config.chromosome_parallel:
+    rule build_allele_counts_chrom:
+        input:
+            b=config.get_bam_file,
+            s=config.get_snp_file
+        output:
+            temp(config.allele_counts_chrom_template)
+        params:
+            config.min_bqual
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.allele_counts_chrom_template)
+        resources:
+            mem="8G"
+        shell:
+            "(python scripts/get_allele_counts.py "
+            "-b {input.b} "
+            "-s {input.s} "
+            "-o {output} "
+            "-c {wildcards.chrom} "
+            "-q {params}) >{log} 2>&1"
 
-rule build_allele_counts:
-    input:
-        lambda wc: [
-            str(config.allele_counts_chrom_template).format(chrom=c,prog=wc.prog,sample=wc.sample)
-            for c in config.chromosomes
-        ]
-    output:
-        config.allele_counts_template
-    conda:
-        "envs/python.yaml"
-    log:
-        config.get_log_file(config.allele_counts_template)
-    shell:
-        "(python scripts/merge_tables.py "
-        "-i {input} "
-        "-o {output}) >{log} 2>&1"
+    rule build_allele_counts:
+        input:
+            lambda wc: [
+                str(config.allele_counts_chrom_template).format(chrom=c,prog=wc.prog,sample=wc.sample)
+                for c in config.chromosomes
+            ]
+        output:
+            config.allele_counts_template
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.allele_counts_template)
+        shell:
+            "(python scripts/merge_tables.py "
+            "-i {input} "
+            "-o {output}) >{log} 2>&1"
+
+else:
+    rule build_allele_counts:
+        input:
+            b=config.get_bam_file,
+            s=config.get_snp_file
+        output:
+            config.allele_counts_template
+        params:
+            c=" ".join(config.chromosomes),
+            q=config.min_bqual
+        conda:
+            "envs/python.yaml"
+        log:
+            config.get_log_file(config.allele_counts_template)
+        resources:
+            mem="8G"
+        shell:
+            "(python scripts/get_allele_counts.py "
+            "-b {input.b} "
+            "-s {input.s} "
+            "-o {output} "
+            "-c {params.c} "
+            "-q {params.q}) >{log} 2>&1"
 
 rule build_hap_bin_counts:
     input:
