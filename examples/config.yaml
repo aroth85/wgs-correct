@@ -1,32 +1,36 @@
-# Whether to append "chr" to the start of the chromosome names
-add_chr_prefix: True
-# List of block sizes using kb format
-bin_sizes:
-  - 10kb
-  - 20kb
+# Bin size for BAF data in kb format
+bin_size_baf: 10kb
+# Bin size for RDR data in kb format
+bin_size_rdr: 100kb
 # List of chromosomes to consider.
-# Note: autosomes can be used to specify 1-22
+# Ensure chr prefix added if necessary
 chromosomes:
-  - autosomes
-  - X
-chromosome_parallel: False
-# BigWig format mappability file
-map_file: /foo/bar/hg38.fa.mappability_150bp.bw
+  - chr1
+  - chr2
+  - chrX
+# Whether to parallelise by chromosome
+chromosome_parallel: True
 # Minimum base quality
 min_bqual: 30
 # Minimum mapping quality
 min_mqual: 30
-# Path to normal BAM file
-normal_bam_file: /foo/bar/bams/normal.bam
-# Path to TSV format file with columns `sample` and `path`
-paths_file: examples/paths.tsv
+
+# BigWig format mappability file
+map_file: /foo/bar/ref/GRCh38/hg38.fa.mappability_150bp.bw
 # Path to FASTA file for reference genome (should have .fai index file)
-ref_genome_file: /foo/bar/Homo_sapiens_assembly38.fasta
-# List of SNP files for different programs to use
-snp_files:
-  eagle: /foo/bar/snps/eagle.bcf
+ref_genome_file: /foo/bar/ref/GRCh38/Homo_sapiens_assembly38.fasta
+
+# Path to normal BAM file
+normal_bam_file: /foo/bar/data/normal.bam
+# Dictionary of tumour BAM files
+# Keys are sample IDs and values paths to BAM files
+tumour_bam_files:
+  A: /foo/bar/data/A.bam
+  B: /foo/bar/data/B.bam
+# Path to file with SNPs from normal samples in either BCF or VCF format
+snp_file: /foo/bar/data/snps.bcf
 
 # Pipeline working directory
-pipeline_dir: /foo/bar/pipeline
+pipeline_dir: /foo/bar/analysis/wgs_cnv_pp/pipeline
 # Pipeline output directory
-out_dir: /foo/bar/output
+out_dir: /foo/bar/analysis/wgs_cnv_pp/output

@@ -14,7 +14,7 @@ rule build_map_wig:
         temp(config.map_template)
     params:
         c=",".join(config.chromosomes),
-        w=lambda wc: config.parse_region_size(wc.bin_size)
+        w=config.parse_region_size(config.bin_size_rdr)
     conda:
         "envs/hmmcopy-utils.yaml"
     log:
@@ -33,7 +33,7 @@ rule build_gc_wig:
         temp(config.gc_template)
     params:
         c=",".join(config.chromosomes),
-        w=lambda wc: config.parse_region_size(wc.bin_size)
+        w=config.parse_region_size(config.bin_size_rdr)
     conda:
         "envs/hmmcopy-utils.yaml"
     log:
@@ -48,12 +48,13 @@ rule build_gc_wig:
 if config.chromosome_parallel:
     rule build_reads_chrom:
         input:
-            config.get_bam_file
+            b=config.get_bam_file,
+            script=workflow.source_path("scripts/get_coverage.py")
         output:
             temp(config.reads_chrom_template)
         params:
             q=config.min_mqual,
-            s=lambda wc: config.parse_region_size(wc.bin_size)
+            s=config.parse_region_size(config.bin_size_rdr)
         conda:
             "envs/python.yaml"
         log:
@@ -61,8 +62,8 @@ if config.chromosome_parallel:
         resources:
             mem="8G"
         shell:
-            "(python scripts/get_coverage.py "
-            "-b {input} "
+            "(python {input.script} "
+            "-b {input.b} "
             "-o {output} "
             "-c {wildcards.chrom} "
             "-q {params.q} "
@@ -70,10 +71,11 @@ if config.chromosome_parallel:
 
     rule build_reads:
         input:
-            lambda wc: [
-                str(config.reads_chrom_template).format(chrom=c,bin_size=wc.bin_size,sample=wc.sample)
+            i=lambda wc: [
+                str(config.reads_chrom_template).format(chrom=c,sample=wc.sample)
                 for c in config.chromosomes
-            ]
+            ],
+            script=workflow.source_path("scripts/merge_tables.py")
         output:
             temp(config.reads_template)
         conda:
@@ -83,20 +85,21 @@ if config.chromosome_parallel:
         resources:
             mem="8G"
         shell:
-            "(python scripts/merge_tables.py "
-            "-i {input} "
+            "(python {input.script} "
+            "-i {input.i} "
             "-o {output}) >{log} 2>&1"
 
 else:
     rule build_reads:
         input:
-            config.get_bam_file
+            bam_file=config.get_bam_file,
+            script=workflow.source_path("scripts/get_coverage.py")
         output:
             temp(config.reads_template)
         params:
             c=" ".join(config.chromosomes),
             q=config.min_mqual,
-            s=lambda wc: config.parse_region_size(wc.bin_size)
+            s=config.parse_region_size(config.bin_size_rdr)
         conda:
             "envs/python.yaml"
         log:
@@ -104,8 +107,8 @@ else:
         resources:
             mem="8G"
         shell:
-            "(python scripts/get_coverage.py "
-            "-b {input} "
+            "(python {input.script} "
+            "-b {input.bam_file} "
             "-o {output} "
             "-c {params.c} "
             "-q {params.q} "
@@ -115,7 +118,8 @@ else:
 rule build_rdr:
     input:
         i=config.reads_template,
-        n=lambda wc: str(config.reads_template).format(sample="normal",bin_size=wc.bin_size)
+        n=lambda wc: str(config.reads_template).format(sample="normal"),
+        script=workflow.source_path("scripts/get_rdr.py")
     output:
         temp(config.rdr_template)
     conda:
@@ -125,7 +129,7 @@ rule build_rdr:
     resources:
         mem="8G"
     shell:
-        "(python scripts/get_rdr.py "
+        "(python {input.script} "
         "-i {input.i} "
         "-n {input.n} "
         "-o {output}) >{log} 2>&1"
@@ -134,7 +138,8 @@ rule build_rdr_corrected:
     input:
         i=config.rdr_template,
         g=config.gc_template,
-        m=config.map_template
+        m=config.map_template,
+        script=workflow.source_path("scripts/get_corrected_rdr.py")
     output:
         config.rdr_corrected_template
     conda:
@@ -144,7 +149,7 @@ rule build_rdr_corrected:
     resources:
         mem="8G"
     shell:
-        "(python scripts/get_corrected_coverage.py "
+        "(python {input.script} "
         "-i {input.i} "
         "-g {input.g} "
         "-m {input.m} "
@@ -155,11 +160,12 @@ if config.chromosome_parallel:
     rule build_allele_counts_chrom:
         input:
             b=config.get_bam_file,
-            s=config.get_snp_file
+            s=config.snp_file,
+            script=workflow.source_path("scripts/get_allele_counts.py")
         output:
             temp(config.allele_counts_chrom_template)
         params:
-            config.min_bqual
+            q=config.min_bqual
         conda:
             "envs/python.yaml"
         log:
@@ -167,19 +173,20 @@ if config.chromosome_parallel:
         resources:
             mem="8G"
         shell:
-            "(python scripts/get_allele_counts.py "
+            "(python {input.script} "
             "-b {input.b} "
             "-s {input.s} "
             "-o {output} "
             "-c {wildcards.chrom} "
-            "-q {params}) >{log} 2>&1"
+            "-q {params.q}) >{log} 2>&1"
 
     rule build_allele_counts:
         input:
-            lambda wc: [
-                str(config.allele_counts_chrom_template).format(chrom=c,prog=wc.prog,sample=wc.sample)
+            i=lambda wc: [
+                str(config.allele_counts_chrom_template).format(chrom=c,sample=wc.sample)
                 for c in config.chromosomes
-            ]
+            ],
+            script=workflow.source_path("scripts/merge_tables.py")
         output:
             config.allele_counts_template
         conda:
@@ -187,15 +194,16 @@ if config.chromosome_parallel:
         log:
             config.get_log_file(config.allele_counts_template)
         shell:
-            "(python scripts/merge_tables.py "
-            "-i {input} "
+            "(python {input.script} "
+            "-i {input.i} "
             "-o {output}) >{log} 2>&1"
 
 else:
     rule build_allele_counts:
         input:
             b=config.get_bam_file,
-            s=config.get_snp_file
+            s=config.snp_file,
+            script=workflow.source_path("scripts/get_allele_counts.py")
         output:
             config.allele_counts_template
         params:
@@ -208,7 +216,7 @@ else:
         resources:
             mem="8G"
         shell:
-            "(python scripts/get_allele_counts.py "
+            "(python {input.script} "
             "-b {input.b} "
             "-s {input.s} "
             "-o {output} "
@@ -218,18 +226,19 @@ else:
 rule build_hap_bin_counts:
     input:
         b=config.get_bam_file,
-        i=config.allele_counts_template
+        i=config.allele_counts_template,
+        script=workflow.source_path("scripts/get_allele_bin_counts.py")
     output:
         config.allele_bin_counts_template
     params:
         c=" ".join(config.chromosomes),
-        s=lambda wc: config.parse_region_size(wc.bin_size)
+        s=config.parse_region_size(config.bin_size_baf)
     conda:
         "envs/python.yaml"
     log:
         config.get_log_file(config.allele_bin_counts_template)
     shell:
-        "(python scripts/get_allele_bin_counts.py "
+        "(python {input.script} "
         "-b {input.b} "
         "-i {input.i} "
         "-o {output} "
@@ -239,7 +248,8 @@ rule build_hap_bin_counts:
 
 rule plot_baf:
     input:
-        config.allele_bin_counts_template
+        i=config.allele_bin_counts_template,
+        script=workflow.source_path("scripts/plot_baf.py")
     output:
         config.baf_plot_template
     conda:
@@ -247,13 +257,14 @@ rule plot_baf:
     log:
         config.get_log_file(config.baf_plot_template)
     shell:
-        "(python scripts/plot_baf.py "
-        "-i {input} "
+        "(python {input.script} "
+        "-i {input.i} "
         "-o {output}) >{log} 2>&1"
 
 rule plot_rdr:
     input:
-        config.rdr_corrected_template
+        i=config.rdr_corrected_template,
+        script=workflow.source_path("scripts/plot_rdr.py")
     output:
         config.rdr_plot_template
     conda:
@@ -261,6 +272,6 @@ rule plot_rdr:
     log:
         config.get_log_file(config.rdr_plot_template)
     shell:
-        "(python scripts/plot_rdr.py "
-        "-i {input} "
+        "(python {input.script} "
+        "-i {input.i} "
         "-o {output}) >{log} 2>&1"

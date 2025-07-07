@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from utils import sort_chroms
-
 
 def main(args):
     df = pd.read_csv(args.in_file, converters={"chrom": str}, sep="\t")
@@ -87,6 +85,35 @@ def plot_by_chrom(df, chroms, fig, grid, title=None, y_col="baf"):
         ax.axis("off")
 
         ax.set_title(title)
+
+
+def sort_chroms(chroms):
+    numeric = []
+
+    string = []
+
+    if chroms[0].startswith("chr"):
+        chr_prefix = True
+
+    else:
+        chr_prefix = False
+
+    for c in chroms:
+        if chr_prefix:
+            c = c.replace("chr", "")
+
+        try:
+            numeric.append(int(c))
+
+        except ValueError:
+            string.append(c)
+
+    chroms = [str(x) for x in sorted(numeric)] + list(sorted(string))
+
+    if chr_prefix:
+        chroms = ["chr{}".format(x) for x in chroms]
+
+    return chroms
 
 
 if __name__ == "__main__":
