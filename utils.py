@@ -2,7 +2,7 @@ import pathlib
 import pandas as pd
 
 
-class ConfigManager(object):
+class MyConfigManager(object):
     @staticmethod
     def parse_region_size(size_str):
         return int(size_str.replace("kb", "")) * int(1e3)
