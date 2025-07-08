@@ -1,7 +1,6 @@
-# from utils import ConfigManager
-include: "utils.py"
+from utils import ConfigManager as LocalConfigManager
 
-config = ConfigManager(config)
+config = LocalConfigManager(config)
 
 
 rule all:
