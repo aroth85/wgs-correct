@@ -1,6 +1,7 @@
-from utils import ConfigManager as LocalConfigManager
+# from utils import ConfigManager
+include: workflow.source_path("utils.py")
 
-config = LocalConfigManager(config)
+config = ConfigManager(config)
 
 
 rule all:
