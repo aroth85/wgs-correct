@@ -1,7 +1,7 @@
 import pathlib
 
 
-class MyConfigManager(object):
+class ConfigManager(object):
     @staticmethod
     def parse_region_size(size_str):
         return int(size_str.replace("kb", "")) * int(1e3)
