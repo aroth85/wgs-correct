@@ -1,5 +1,5 @@
 # from utils import ConfigManager
-include: workflow.source_path("utils.py")
+include: "utils.py"
 
 config = ConfigManager(config)
 
