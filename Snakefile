@@ -1,4 +1,5 @@
-from utils import ConfigManager
+# from utils import ConfigManager
+include: "utils.py"
 
 config = ConfigManager(config)
 
