@@ -1,5 +1,4 @@
 import pathlib
-import pandas as pd
 
 
 class MyConfigManager(object):
