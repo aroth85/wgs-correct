@@ -50,6 +50,7 @@ if config.chromosome_parallel:
     rule build_reads_chrom:
         input:
             b=config.get_bam_file,
+            k=config.black_list_file,
             script=workflow.source_path("scripts/get_coverage.py")
         output:
             temp(config.reads_chrom_template)
@@ -65,6 +66,7 @@ if config.chromosome_parallel:
         shell:
             "(python {input.script} "
             "-b {input.b} "
+            "-k {input.k} "
             "-o {output} "
             "-c {wildcards.chrom} "
             "-q {params.q} "
@@ -94,6 +96,7 @@ else:
     rule build_reads:
         input:
             bam_file=config.get_bam_file,
+            k=config.black_list_file,
             script=workflow.source_path("scripts/get_coverage.py")
         output:
             temp(config.reads_template)
@@ -110,6 +113,7 @@ else:
         shell:
             "(python {input.script} "
             "-b {input.bam_file} "
+            "-k {input.k} "
             "-o {output} "
             "-c {params.c} "
             "-q {params.q} "
@@ -228,6 +232,7 @@ rule build_hap_bin_counts:
     input:
         b=config.get_bam_file,
         i=config.allele_counts_template,
+        k=config.black_list_file,
         script=workflow.source_path("scripts/get_allele_bin_counts.py")
     output:
         config.allele_bin_counts_template
@@ -242,6 +247,7 @@ rule build_hap_bin_counts:
         "(python {input.script} "
         "-b {input.b} "
         "-i {input.i} "
+        "-k {input.k} "
         "-o {output} "
         "-c {params.c} "
         "-s {params.s} "

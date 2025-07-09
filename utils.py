@@ -40,6 +40,10 @@ class ConfigManager(object):
 
     # Input files
     @property
+    def black_list_file(self):
+        return pathlib.Path(self.config["black_list_file"])
+
+    @property
     def normal_bam_file(self):
         return pathlib.Path(self.config["normal_bam_file"])
 

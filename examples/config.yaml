@@ -15,7 +15,11 @@ min_bqual: 30
 # Minimum mapping quality
 min_mqual: 30
 
+# Boyle lab black list
+# https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz
+black_list_file: /home/andrew/projects/share/ref/GRCh38/hg38-blacklist.v2.bed.gz
 # BigWig format mappability file
+# https://zenodo.org/records/5521424/files/hg38.fa.mappability_150bp.bw
 map_file: /foo/bar/ref/GRCh38/hg38.fa.mappability_150bp.bw
 # Path to FASTA file for reference genome (should have .fai index file)
 ref_genome_file: /foo/bar/ref/GRCh38/Homo_sapiens_assembly38.fasta
